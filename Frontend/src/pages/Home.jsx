@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import DisclaimerBox from "../components/DisclaimerBox";
 import ConfirmationModal from "../components/ConfirmationModal";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import LoadingOverlay from "../components/LoadingOverlay";
 
 const Home = () => {
@@ -336,11 +336,13 @@ const Home = () => {
 
           <DisclaimerBox />
 
+                <Link to={"/chat"}>
           <div className="fixed bottom-4 right-4 z-50 cursor-pointer">
-            <button className=" text-white p-3 rounded-full shadow-lg bg-emerald-700 hover:shadow-xl transition-all transform hover:-translate-y-1 outline-none ring-2 ring-emerald-500 ring-offset-2">
+            <button className=" text-white p-3 rounded-full shadow-lg bg-emerald-700 hover:shadow-xl transition-all transform hover:-translate-y-1 outline-none ring-2 ring-emerald-500 ring-offset-2 cursor-pointer">
               <BotMessageSquare className="w-6 h-6" />
             </button>
           </div>
+          </Link>
         </div>
       </main>
     </div>

@@ -272,5 +272,49 @@ def change_lang():
             "raw_response": response_text if 'response_text' in locals() else None
         }), 500
 
+
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    data = request.get_json()
+    input_text = data.get("input", "").strip()
+    messages = data.get("messages", [])
+
+    if not input_text:
+        return jsonify({"error": "'input' is required."}), 400
+
+    conversation_history = "\n".join(
+        f"{msg['sender'].capitalize()}: {msg['text']}" for msg in messages
+    )
+
+    prompt = f"""
+    You are AILORA, an AI doctor.
+    Talk like a real medical professional. 
+    Ask short, clear diagnostic questions to understand the user's symptoms, duration, and severity.
+    Be conversational but factual.
+    Avoid greetings and disclaimers unless necessary.
+    Keep each reply under 100 characters.
+
+    Chat so far:
+    {conversation_history}
+
+    User: {input_text}
+    AILORA:
+    """
+
+    try:
+        model_gemini = genai.GenerativeModel("models/gemini-pro-latest")
+        response = model_gemini.generate_content(prompt)
+        response_text = getattr(response, "text", str(response)).strip()
+        print(response_text)
+        return jsonify({"message": response_text})
+
+    except Exception as e:
+        return jsonify({
+            "error": "Failed to generate response.",
+            "details": str(e),
+            "raw_response": response_text if 'response_text' in locals() else None
+        }), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True)

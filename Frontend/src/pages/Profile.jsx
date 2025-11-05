@@ -73,6 +73,7 @@ export default function Profile() {
       setTimeout(() => setMsg(""), 3000);
     } catch (e) {
       setMsg("Operation failed. Please try again.");
+      console.log(e);
     } finally {
       setLoading(false);
     }

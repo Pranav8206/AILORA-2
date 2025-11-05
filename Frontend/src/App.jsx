@@ -6,6 +6,7 @@ import History from "./pages/History";
 import Nav from "./components/Nav";
 import Footer from "./components/Footer";
 import AboutUs from "./pages/AboutUs";
+import Chat from "./pages/Chat";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/prediction" element={<Prediction />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/history" element={<History />} />
+          <Route path="/chat" element={<Chat />} />
         </Routes>
         <Footer />
     </BrowserRouter>
