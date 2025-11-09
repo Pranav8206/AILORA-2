@@ -400,8 +400,8 @@ const Home = () => {
 
           <Link to={"/chat"}>
             <div className="fixed bottom-4 right-4 z-50 cursor-pointer">
-              <button className="text-white p-3 rounded-full shadow-lg bg-green-700 hover:shadow-xl transition-all transform hover:-translate-y-1 outline-none ring-2 ring-green-500 ring-offset-2 cursor-pointer">
-                <BotMessageSquare className="w-6 h-6" />
+              <button className="p-3 rounded-full shadow-lg bg-white hover:shadow-xl transition-all transform hover:-translate-y-1 outline-none ring-2 ring-green-500 ring-offset-2 cursor-pointer">
+                <BotMessageSquare className="w-6 h-6 text-black" />
               </button>
             </div>
           </Link>
