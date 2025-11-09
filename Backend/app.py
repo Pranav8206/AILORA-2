@@ -34,7 +34,7 @@ def load_artifacts():
 # Load your trained ML model files
 model, vectorizer, label_encoder = load_artifacts()
 
-def get_gemini_explanation(diseases, symptoms, user_profile=None):
+def get_gemini_explanation(diseases, symptoms, user_profile=""):
     if not GENAI_AVAILABLE:
         return [{
             "symptoms": symptoms,
@@ -51,9 +51,10 @@ def get_gemini_explanation(diseases, symptoms, user_profile=None):
         - Age: {user_profile.get('age', 'Not specified')}
         - Gender: {user_profile.get('gender', 'Not specified')}
         - Allergies: {user_profile.get('allergies', 'None')}
-        - Chronic Conditions: {user_profile.get('chronic_conditions', 'None')}
+        - Chronic Medical  Conditions: {user_profile.get('chronic_conditions', 'None')}
+        - Lifestyle Habits: {user_profile.get('habits', 'None')}
         """
-
+    
     prompt = f"""
     You are a reliable medical assistant AI. Provide information in English.
 
@@ -124,7 +125,8 @@ def predict():
     try:
         data = request.get_json()
         symptoms_text = data.get("symptoms", "").strip()
-        
+        user_profile=data.get("user_profile" , "")
+
         if not symptoms_text or len(symptoms_text) < 3:
             return jsonify({
                 "error": "Please enter meaningful symptoms (at least 3 characters)."
@@ -139,7 +141,7 @@ def predict():
         top_probabilities = [float(proba[i]) for i in top_indices]
 
         try:
-            explanation = get_gemini_explanation(top_diseases, symptoms_text)
+            explanation = get_gemini_explanation(top_diseases, symptoms_text, user_profile)
         except Exception as e:
             explanation = [{
                 "Disease Name": disease,
@@ -163,6 +165,7 @@ def predict():
                 for disease, prob in zip(top_diseases[:5], top_probabilities[:5])
             ],
             "detailed_analysis": explanation,
+            "user_profile": user_profile,
         })
         
     except Exception as e:
@@ -181,18 +184,17 @@ def extract_symptoms():
 
     # Step 1: Send user text to Gemini for symptom extraction
     prompt = f"""
-    You are a medical assistant AI. Extract clear, medically relevant symptoms
-    from this user input and respond ONLY with valid JSON.
+    You are a medical assistant AI. Extract clear, medically relevant symptoms from this user input and respond ONLY with valid JSON.
 
     Input: "{condition_text}"
 
     Respond in this exact JSON format:
     {{ 
-      "extracted_symptoms": ["symptom1", "symptom2", ...],
       "has_valid_symptoms": true or false,
+      "extracted_symptoms": ["symptom1", "symptom2", ...,]
     }}
     """
-
+    
     model_gemini = genai.GenerativeModel("models/gemini-pro-latest")
     response = model_gemini.generate_content(prompt)
     response_text = getattr(response, "text", str(response))
@@ -202,19 +204,18 @@ def extract_symptoms():
         start = response_text.find("{")
         end = response_text.rfind("}") + 1
         parsed = json.loads(response_text[start:end])
-        extracted_symptoms = parsed.get("extracted_symptoms", [])
-        has_valid_symptoms = parsed.get("has_valid_symptoms", [])
+        extracted_symptoms = parsed.get("extracted_symptoms")
+        has_valid_symptoms = parsed.get("has_valid_symptoms")
     except Exception:
         return jsonify({
             "error": "Failed to extract symptoms from user description.",
-            "raw_response": response_text
+            "has_valid_symptoms": False
         }), 500
 
     return jsonify({
         "success": True,
-        "original_condition": condition_text,
+        "has_valid_symptoms": has_valid_symptoms,
         "extracted_symptoms": extracted_symptoms,
-        "has_valid_symptoms": has_valid_symptoms
     })
 
 @app.route("/api/change-lang", methods=["POST"])
@@ -222,7 +223,6 @@ def change_lang():
     data = request.get_json()
     analysis_data = data.get("detailed_analysis")
     target_lang = data.get("language", "").strip().lower()
-    print("Requested Language:", target_lang)
     if not analysis_data or not target_lang:
         return jsonify({"error": "Both 'detailed_analysis' and 'language' are required."}), 400
 
@@ -248,17 +248,14 @@ def change_lang():
     Here is the actual JSON to translate:
     {json.dumps(analysis_data, ensure_ascii=False, indent=2)}
     """
-    print("Translation Prompt:", prompt)
     try:
         model_gemini = genai.GenerativeModel("models/gemini-pro-latest")
         response = model_gemini.generate_content(prompt)
         response_text = getattr(response, "text", str(response))
-        print("Gemini Response:", response_text)
         # Extract valid JSON from Gemini output
         start = response_text.find("{")
         end = response_text.rfind("}") + 1
         translated_json = json.loads(response_text[start:end])
-        print("Translated JSON:", translated_json)
         return jsonify({
             "success": True,
             "language": target_lang,
@@ -271,7 +268,6 @@ def change_lang():
             "details": str(e),
             "raw_response": response_text if 'response_text' in locals() else None
         }), 500
-
 
 @app.route("/api/chat", methods=["POST"])
 def chat():
@@ -288,24 +284,22 @@ def chat():
 
     prompt = f"""
     You are AILORA, an AI doctor.
-    Talk like a real medical professional. 
-    Ask short, clear diagnostic questions to understand the user's symptoms, duration, and severity.
-    Be conversational but factual.
-    Avoid greetings and disclaimers unless necessary.
-    Keep each reply under 100 characters.
-
     Chat so far:
     {conversation_history}
-
     User: {input_text}
-    AILORA:
+
+    Task: First ask 5 diagnostic questions (short). Then provide likely causes, possible treatments, and immediate advice.
+    - Be conversational but factual.
+    - Avoid greetings and long disclaimers.
+    - Keep the entire reply under 800 characters.
+    - Return plain text (not JSON).
     """
 
     try:
         model_gemini = genai.GenerativeModel("models/gemini-pro-latest")
         response = model_gemini.generate_content(prompt)
+        print(response)
         response_text = getattr(response, "text", str(response)).strip()
-        print(response_text)
         return jsonify({"message": response_text})
 
     except Exception as e:
@@ -317,4 +311,4 @@ def chat():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

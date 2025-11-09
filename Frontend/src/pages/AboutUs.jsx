@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ShieldCheck, Brain, HeartPulse } from "lucide-react";
 
 const AboutUs = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <main className="max-w-7xl mx-auto px-6 py-5 sm:py-16 font-sans text-gray-800">
       {/* Hero Section */}
@@ -18,7 +22,7 @@ const AboutUs = () => {
       {/* Cards Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
         {/* How it Works */}
-        <section className="bg-white/70 backdrop-blur-md p-8 rounded-2xl border border-green-100 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+        <section className="bg-white/70 backdrop-blur-md p-8 rounded-2xl border border-green-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <div className="text-green-600 mb-4">
             <Brain size={48} />
           </div>
@@ -44,7 +48,7 @@ const AboutUs = () => {
         </section>
 
         {/* Vision */}
-        <section className="bg-white/70 backdrop-blur-md p-8 rounded-2xl border border-green-100 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+        <section className="bg-white/70 backdrop-blur-md p-8 rounded-2xl border border-green-100  hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <div className="text-green-600 mb-4">
             <HeartPulse size={48} />
           </div>
@@ -59,7 +63,7 @@ const AboutUs = () => {
         </section>
 
         {/* Privacy & Ethics */}
-        <section className="bg-white/70 backdrop-blur-md p-8 rounded-2xl border border-green-100 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+        <section className="bg-white/70 backdrop-blur-md p-8 rounded-2xl border border-green-100  hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <div className="text-green-600 mb-4">
             <ShieldCheck size={48} />
           </div>

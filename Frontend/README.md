@@ -7,7 +7,7 @@ Development
 
 Environment
 - Optionally create `.env` and set `VITE_API_BASE` if you deploy backend elsewhere.
-  - Example: `VITE_API_BASE=https://your-backend.example.com/api`
+  - Example: `VITE_API_BASE=https://ailora-2.onrender.com/api`
 
 Features
 - Symptom input (text + voice via Web Speech API).
@@ -17,5 +17,5 @@ Features
 Structure
 - `src/pages/Home.jsx`: main diagnosis flow.
 - `src/pages/Profile.jsx`: profile create/update.
-- `src/pages/History.jsx`: past predictions.
-- `src/api/client.js`: API client.
+- `src/pages/Prediction.jsx`: predictions of dieseses.
+- `src/pages/AboutUs.jsx`: Information about AILORA.

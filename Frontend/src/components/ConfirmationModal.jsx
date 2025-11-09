@@ -2,7 +2,7 @@ import React from "react";
 
 const ConfirmationModal = ({ result, onClose, onContinue }) => {
   if (!result) return null;
-console.log("result", result);
+  console.log("result", result);
 
   const { stage } = result;
 
@@ -30,7 +30,7 @@ console.log("result", result);
               </button>
               <button
                 onClick={() => onContinue(result.extractedSymptoms)}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
               >
                 Continue
               </button>
@@ -58,7 +58,7 @@ console.log("result", result);
             <div className="flex justify-center mt-6">
               <button
                 onClick={onClose}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
               >
                 Close
               </button>

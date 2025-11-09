@@ -19,6 +19,7 @@ export default function Profile() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     const savedMembers = JSON.parse(
       localStorage.getItem("familyMembers") || "[]"
     );
@@ -124,11 +125,11 @@ export default function Profile() {
     <div className="min-h-screen py-8 px-2 sm:px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-6 border-t-4 border-emerald-600">
+        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-6 border-t-4 border-green-600">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
-              <div className="bg-emerald-100 p-3 rounded-xl">
-                <Users className="w-8 h-8 text-emerald-700" />
+              <div className="bg-green-100 p-3 rounded-xl">
+                <Users className="w-8 h-8 text-green-700" />
               </div>
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">
@@ -141,7 +142,7 @@ export default function Profile() {
             </div>
             <button
               onClick={openModal}
-              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="flex items-center gap-2 bg-green-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all hover:shadow  transform hover:translate-y-0.5 cursor-pointer"
             >
               <Plus className="w-5 h-5" />
               Add Member
@@ -155,7 +156,7 @@ export default function Profile() {
             className={`mb-6 border px-4 sm:px-6 py-4 rounded-xl shadow-sm ${
               msg.includes("already exists")
                 ? "bg-red-50 border-red-200 text-red-800"
-                : "bg-emerald-50 border-emerald-200 text-emerald-800"
+                : "bg-green-50 border-green-200 text-green-700"
             }`}
           >
             <p className="font-medium text-sm sm:text-base">{msg}</p>
@@ -166,8 +167,8 @@ export default function Profile() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {members.length === 0 ? (
             <div className="col-span-full bg-white rounded-2xl shadow-lg p-8 sm:p-12 text-center">
-              <div className="bg-emerald-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <UserPlus className="w-10 h-10 text-emerald-600" />
+              <div className="bg-green-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <UserPlus className="w-10 h-10 text-green-600" />
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-slate-800 mb-2">
                 No Family Members Yet
@@ -178,7 +179,7 @@ export default function Profile() {
               </p>
               <button
                 onClick={openModal}
-                className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all"
+                className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all"
               >
                 <Plus className="w-5 h-5" />
                 Add Your First Member
@@ -188,12 +189,12 @@ export default function Profile() {
             members.map((member) => (
               <div
                 key={member.id}
-                className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all p-6 border-l-4 border-emerald-500"
+                className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all p-6 border-l-4 border-green-500"
               >
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="bg-emerald-100 p-2 rounded-lg">
-                      <Users className="w-6 h-6 text-emerald-700" />
+                    <div className="bg-green-100 p-2 rounded-lg">
+                      <Users className="w-6 h-6 text-green-700" />
                     </div>
                     <div>
                       <h3 className="text-lg sm:text-xl font-bold text-slate-800">
@@ -207,14 +208,14 @@ export default function Profile() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleEdit(member)}
-                      className="p-3 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                      className="p-3 text-green-600 hover:bg-green-50 rounded-lg transition-colors cursor-pointer"
                       title="Edit profile"
                     >
                       <Pencil size={20} />
                     </button>
                     <button
                       onClick={() => handleDelete(member.id)}
-                      className="p-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                       title="Delete profile"
                     >
                       <Trash2 size={20} />
@@ -224,13 +225,13 @@ export default function Profile() {
 
                 <div className="space-y-3 text-sm sm:text-base">
                   <div className="flex items-center gap-2 text-slate-700">
-                    <span className="font-semibold text-emerald-700 min-w-28 sm:min-w-32">
+                    <span className="font-semibold text-green-700 min-w-28 sm:min-w-32">
                       Age:
                     </span>
                     <span>{member.age || "Not specified"}</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-700">
-                    <span className="font-semibold text-emerald-700 min-w-28 sm:min-w-32">
+                    <span className="font-semibold text-green-700 min-w-28 sm:min-w-32">
                       Gender:
                     </span>
                     <span className="capitalize">
@@ -238,19 +239,19 @@ export default function Profile() {
                     </span>
                   </div>
                   <div className="flex items-start gap-2 text-slate-700">
-                    <span className="font-semibold text-emerald-700 min-w-28 sm:min-w-32">
+                    <span className="font-semibold text-green-700 min-w-28 sm:min-w-32">
                       Allergies:
                     </span>
                     <span>{member.allergies || "None reported"}</span>
                   </div>
                   <div className="flex items-start gap-2 text-slate-700">
-                    <span className="font-semibold text-emerald-700 min-w-28 sm:min-w-32">
+                    <span className="font-semibold text-green-700 min-w-28 sm:min-w-32">
                       Medical Conditions:
                     </span>
                     <span>{member.chronic_conditions || "None reported"}</span>
                   </div>
                   <div className="flex items-start gap-2 text-slate-700">
-                    <span className="font-semibold text-emerald-700 min-w-28 sm:min-w-32">
+                    <span className="font-semibold text-green-700 min-w-28 sm:min-w-32">
                       Lifestyle Habits:
                     </span>
                     <span>{member.habits || "None reported"}</span>

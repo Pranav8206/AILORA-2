@@ -11,13 +11,13 @@ import {
   Heart,
   Stethoscope,
   Loader2,
-  MessageCircleCode,
   BotMessageSquare,
 } from "lucide-react";
 import DisclaimerBox from "../components/DisclaimerBox";
 import ConfirmationModal from "../components/ConfirmationModal";
 import { Link, useNavigate } from "react-router-dom";
 import LoadingOverlay from "../components/LoadingOverlay";
+import api from "../api/axios";
 
 const Home = () => {
   const [tab, setTab] = useState("feelings");
@@ -28,8 +28,22 @@ const Home = () => {
   const [resultModal, setResultModal] = useState(null);
   const [supported, setSupported] = useState(false);
   const [listening, setListening] = useState(false);
+  const [familyMembers, setFamilyMembers] = useState([]);
+  const [selectedMember, setSelectedMember] = useState("");
   const recognitionRef = useRef(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    try {
+      const stored = localStorage.getItem("familyMembers");
+      const members = stored ? JSON.parse(stored) : [];
+      setFamilyMembers(members);
+    } catch (err) {
+      console.error("Failed to parse family members:", err);
+      setFamilyMembers([]);
+    }
+  }, []);
 
   // Speech-to-Text Setup
   useEffect(() => {
@@ -76,23 +90,21 @@ const Home = () => {
     setLoadingMessage("Extracting symptoms...");
 
     try {
-      const res = await fetch("/api/extract-symptoms", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ condition: input }),
+      const { data } = await api.post("/api/extract-symptoms", {
+        condition: input,
       });
-      const data = await res.json();
 
       if (!data.success) throw new Error(data.message || "Extraction failed.");
 
-      if (!data.has_valid_symptoms)
+      if (data.has_valid_symptoms === "false")
         throw new Error(
           data.message || "No valid symptoms found in provided input."
         );
 
+      setInput(data.extracted_symptoms.join(", "));
       setResultModal({
         stage: "extracted",
-        input: data.original_condition,
+        input: input,
         extractedSymptoms: data.extracted_symptoms,
       });
     } catch (err) {
@@ -104,7 +116,7 @@ const Home = () => {
   };
 
   const handleConditionSubmit = async () => {
-    if (!input.trim()) {
+    if (tab === "conditions" && !input.trim()) {
       setError("Please describe your condition.");
       return;
     }
@@ -113,15 +125,18 @@ const Home = () => {
     setLoadingMessage("Analyzing condition...");
 
     try {
-      const res = await fetch("/api/predict", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symptoms: input }),
-      });
-      const data = await res.json();
+      let profile = null;
+      if (selectedMember) {
+        profile = familyMembers.find((m) => m.id === selectedMember) || null;
+      }
 
-      if (!data.success) throw new Error("Prediction failed.");
-      if (!data.has_valid_symptoms)
+      const { data } = await api.post("/api/predict", {
+        symptoms: input,
+        user_profile: profile || {},
+      });
+
+      if (!data.success) throw new Error("Prediction failed here.");
+      if (data.has_valid_symptoms === "false")
         throw new Error(
           data.message || "No valid symptoms found in provided input."
         );
@@ -142,7 +157,10 @@ const Home = () => {
         <ConfirmationModal
           result={resultModal}
           onClose={() => setResultModal(null)}
-          onContinue={handleConditionSubmit}
+          onContinue={() => {
+            handleConditionSubmit();
+            setResultModal(null);
+          }}
         />
       )}
 
@@ -180,14 +198,15 @@ const Home = () => {
                   setTab("feelings");
                   setInput("");
                   setError("");
+                  if (listening) stopSpeech();
                 }}
-                className={`flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-300 cursor-pointer ${
+                className={`flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-300 cursor-pointer group ${
                   tab === "feelings"
                     ? "bg-linear-to-r from-green-600 to-green-700 text-white shadow-lg scale-105"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                <Heart size={18} />
+                <Heart size={18} className={`${tab === "conditions" && "group-hover:text-green-700 transition-all duration-1000"}`} />
                 <span>Share Feelings</span>
               </button>
               <button
@@ -195,14 +214,15 @@ const Home = () => {
                   setTab("conditions");
                   setInput("");
                   setError("");
+                  if (listening) stopSpeech();
                 }}
-                className={`flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-300 cursor-pointer ${
+                className={`flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-300 cursor-pointer group ${
                   tab === "conditions"
                     ? "bg-linear-to-r from-green-600 to-green-700 text-white shadow-lg scale-105"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                <Stethoscope size={18} />
+                <Stethoscope size={18} className={`${tab === "feelings" && "group-hover:text-green-700 transition-all duration-1000"} `} />
                 <span>Share Conditions</span>
               </button>
             </div>
@@ -219,8 +239,42 @@ const Home = () => {
 
           <div className="bg-white/90 backdrop-blur-xl rounded-xl sm:rounded-3xl shadow-2xl border border-slate-200 p-5 sm:p-8 mb-8">
             <div className="space-y-6">
-              {tab === "feelings" ? (
+              {familyMembers.length === 0 ? (
+                <div className="text-center">
+                  <p className="text-slate-900 mb-3">
+                    No family members found.
+                  </p>
+                  <Link
+                    to="/profile"
+                    className="text-green-600 hover:underline font-semibold"
+                  >
+                    Add a family member
+                  </Link>
+                </div>
+              ) : (
                 <div>
+                  <label className="block text-lg font-bold text-slate-900 mb-3">
+                    Select Person
+                  </label>
+                  <select
+                    className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-white/50 cursor-pointer"
+                    value={selectedMember}
+                    onChange={(e) => setSelectedMember(e.target.value)}
+                  >
+                    <option value="">Select a family member</option>
+                    {familyMembers.map((member) => (
+                      <option key={member.id} value={member.id} className="cursor-pointer">
+                        {member.id} ({member.age}, {member.gender})
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-xs text-slate-500 pl-2">
+                    *Don't select for general use cases!
+                  </span>
+                </div>
+              )}
+              {tab === "feelings" ? (
+                <div className="relative">
                   <label className="block text-lg font-bold text-slate-900 mb-3">
                     Describe Your Feelings
                   </label>
@@ -252,7 +306,15 @@ const Home = () => {
                     className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all resize-none bg-white/50"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.ctrlKey && e.key === "Enter") {
+                        e.preventDefault();
+                        if (tab === "feelings") handleFeelingSubmit();
+                        else handleConditionSubmit();
+                      }
+                    }}
                   />
+                  <div className="absolute bottom-2 right-1 text-xs text-gray-400 rounded-full">Ctl + Enter</div>
                 </div>
               ) : (
                 <div>
@@ -298,7 +360,7 @@ const Home = () => {
                     : handleConditionSubmit()
                 }
                 disabled={loading}
-                className="mt-6 w-full flex items-center justify-center py-3 bg-green-600 text-white rounded-xl font-semibold transition-all disabled:opacity-50 gap-1  duration-300"
+                className="mt-6 w-full flex items-center justify-center py-3 bg-green-600 text-white rounded-xl font-semibold transition-all disabled:opacity-50 gap-1 duration-300 cursor-pointer"
               >
                 {loading ? (
                   <>
@@ -310,7 +372,7 @@ const Home = () => {
                     <Brain size={24} />
                     <span>
                       {tab === "feelings"
-                        ? "Exatract symptoms & Analyze"
+                        ? "Extract symptoms & Analyze"
                         : "Analyze with AI"}
                     </span>
                   </>
@@ -336,12 +398,12 @@ const Home = () => {
 
           <DisclaimerBox />
 
-                <Link to={"/chat"}>
-          <div className="fixed bottom-4 right-4 z-50 cursor-pointer">
-            <button className=" text-white p-3 rounded-full shadow-lg bg-emerald-700 hover:shadow-xl transition-all transform hover:-translate-y-1 outline-none ring-2 ring-emerald-500 ring-offset-2 cursor-pointer">
-              <BotMessageSquare className="w-6 h-6" />
-            </button>
-          </div>
+          <Link to={"/chat"}>
+            <div className="fixed bottom-4 right-4 z-50 cursor-pointer">
+              <button className="text-white p-3 rounded-full shadow-lg bg-green-700 hover:shadow-xl transition-all transform hover:-translate-y-1 outline-none ring-2 ring-green-500 ring-offset-2 cursor-pointer">
+                <BotMessageSquare className="w-6 h-6" />
+              </button>
+            </div>
           </Link>
         </div>
       </main>
